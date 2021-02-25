@@ -194,7 +194,7 @@ class KNNClassifer():
         '''
         inx_to_label = dict(zip(self.label_dict.values(), self.label_dict.keys()))
         with open(self.eval_data_path, "r") as f:
-            strings = f'k = {self.k}\n{self.distance_type}\n'
+            strings = f'K = {self.k}\nDistance Type = L{self.distance_type}\n'
             lines = f.readlines()
             for i, line in enumerate(lines):
                 if i == 0:
