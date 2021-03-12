@@ -45,12 +45,12 @@ class LinerRegression():
         '''
         return np.matmul(np.matmul(np.linalg.pinv(np.matmul(self.data.T, self.data)), self.data.T), self.label.T) 
    
-    def fit_gd(self, epoch = 300, rl=0.0000001):
+    def fit_gd(self, epoch = 300, learning_rate = 1e-7):
         '''
         Get estimate weights using Gradient Descent
         Input:
             epoch: Traning iteration number
-            rl: learning rate
+            learning_rate: learning rate
         '''
         # Initialize weights to all zeros
         weights = np.zeros((self.data.shape[1], ))
@@ -72,11 +72,11 @@ class LinerRegression():
                 
             costs.append(cost / self.data.shape[0])    
             delta_weights = delta_weights_sum / self.data.shape[1]
-            weights -= rl * delta_weights
+            weights -= learning_rate * delta_weights
             
         return weights, costs
     
-    def evaluate(self, file_name, weights):
+    def evaluate(self, file_name, weights, threshold):
         '''
         Evaluate given weights on data from input file
         Input:
@@ -85,9 +85,10 @@ class LinerRegression():
         Output:
             accuracy of model
         '''
+        
         data, label = self.__read_data(file_name)
         data = np.hstack((np.ones((data.shape[0], 1)), data))
-        pred = [1 if np.dot(vect, weights) > 0.5 else 0 for vect in data]
+        pred = [1 if np.dot(vect, weights) > threshold else 0 for vect in data]
         # get predicted result
         correct = 0
         for gt, p in zip(label, pred):
@@ -96,21 +97,56 @@ class LinerRegression():
         # get correct result count
         return correct / len(label)
                 
-        
-                
+if __name__ == '__main__':
+
+    lr = LinerRegression("./lr_training.csv")
+
+    # Task 1. Classifying lrdata
+    
+    # 1. Train a linear regression model
+    b_opt = lr.fit_opt()
+    
+    # 2. Display the optimal coefficients (denoted by b_opt)
+    
+    print('Optimal Coefficients:')
+    for i, b in enumerate(b_opt):
+        print(f'b_{i} = {b}')
+    
+    # 3. Classify test data (lr_test.csv) with a threshold of 0.5
+    acc = lr.evaluate('./lr_test.csv', b_opt, 0.5)
+    
+    # 4. Display the accuracy
+    
+    print(f'Accuracy for the b_opt is : {acc}')
     
     
-# a = np.array([1, 2, 3]).reshape((3, 1))
+    # Task 2. Implementation of Gradient Descent with lrdata
+    
+    # 1. Run "gradient descent" algorithm with the hyper-parameters
+    b_est, costs = lr.fit_gd(epoch = 300, learning_rate = 1e-7)
+    
+    # 2. Display "Learning Curve"
+    x, y = zip(*enumerate(costs))
+    plt.xlabel('Iteration')
+    plt.ylabel('Cost')
+    plt.title('Lerning Curve')
+    plt.plot(x, y)
+    plt.show()
+    
+    # 3. Display the estimated coefficients (denoted by b_opt)
+    
+    print('Estimated Coefficients:')
+    for i, b in enumerate(b_est):
+        print(f'b_{i} = {b}')
 
-# lb = np.array([1, 2, 2])
+    # 4. Classify test data with a threshold of 0.5
+    acc = lr.evaluate("./lr_test.csv", b_est, 0.5)
 
-lr = LinerRegression("./lr_test.csv")
+    # 5. Display the accuracy
+    print(f'Accuracy for the b_est is : {acc}')
+    
+    # 6. Display the total differences between b_opt and b_est
+    diff = sum(abs(b_opt - b_est))
+    print(f'Total differences between b_opt and b_est is : {diff}')
 
-weights, costs = lr.fit_gd()
-
-print(lr.evaluate("./lr_test.csv", weights))
-
-
-x, y = zip(*enumerate(costs))
-plt.plot(x, y)
-plt.show()
+    
